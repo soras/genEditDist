@@ -59,16 +59,22 @@ typedef struct Trie {
 *   The node with \a replacement \c != \c NULL indicates that a left side ends 
 *   there and possible right sides can be constructed by following  \c EndNode 
 *   links.
+*   
+*   The link \a *prevNode points to the previous character in the string, and it 
+*   is used for backwards tracing: starting from a leaf node or from an internal 
+*   node and moving backwards to the root;
 */
 typedef struct TrieNode {
     /** Last character of a prefix. */
     wchar_t label; 
     /** Right side(s) for transformation(s) having \a label at the end of the left side. */
     struct EndNode *replacement;
-    /** Next character(s) following \a label. */
-    struct TrieNode *nextNode; 
     /** Alternate character(s) for \a label. */
     struct TrieNode *rightNode;
+    /** Next character(s) following \a label. */
+    struct TrieNode *nextNode; 
+    /** Prev character(s) following \a label. */
+    struct TrieNode *prevNode;
 } TrieNode;
 
 /**

@@ -26,12 +26,13 @@
 // create new TrieNode
 TrieNode *newTrieNode(wchar_t a){
 	TrieNode *newNode;
-    newNode = (TrieNode*)malloc(sizeof(TrieNode));
-    if(newNode == NULL)
-        abort();
+	newNode = (TrieNode*)malloc(sizeof(TrieNode));
+	if(newNode == NULL)
+		abort();
 	newNode->label = a;
 	newNode->replacement = NULL;
-	newNode->nextNode = NULL;
+	newNode->nextNode  = NULL;
+	newNode->prevNode  = NULL;
 	newNode->rightNode = NULL;
 	return newNode;
 }
@@ -101,11 +102,13 @@ int addToTrieDepth(TrieNode *node, wchar_t *string1, int strLen1, wchar_t *strin
     /* more than 1 letters to add */
     if(strLen1 > 1){
         node->nextNode = newTrieNode(*string1);
+        node->nextNode->prevNode = node;
         return addToTrieDepth(node->nextNode, string1+1, strLen1-1, string2, value);
     }
     /* only 1 letter to add */
     else{
         tmp = newTrieNode(*string1);
+        tmp->prevNode  = node;
         node->nextNode = tmp;
         tmp->replacement = newEndNode(string2, value);
     }
@@ -127,6 +130,8 @@ int addToTrie(wchar_t *string1, int strLen1, wchar_t *string2, double value){
     }
 
     tmp = t->firstNode;
+    TrieNode *prev;
+    prev = NULL;
     /* find common prefix from the trie */
     while(strLen1 > 0){
         /* if the left side already exists, add replacement to its ending node */
@@ -136,6 +141,7 @@ int addToTrie(wchar_t *string1, int strLen1, wchar_t *string2, double value){
         }
         /* if the label matches, proceed to the next level in depth */
         else if(tmp->label == *string1 && tmp->nextNode != NULL){
+           prev = tmp;
            tmp = tmp->nextNode;
            string1 = string1 + 1;
            strLen1--;
@@ -152,6 +158,7 @@ int addToTrie(wchar_t *string1, int strLen1, wchar_t *string2, double value){
     }
     /* if common prefix was not found or was incomplete, a new branch must be started */
     tmp->rightNode = newTrieNode(*string1);
+    tmp->rightNode->prevNode = prev;
     tmp = tmp->rightNode;
     if(strLen1 == 1)
        addEndNode(tmp,string2, value);

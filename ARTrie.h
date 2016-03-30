@@ -38,12 +38,16 @@
 *  at current position can be replaced with \a rightNode->label). The node 
 *  with \a value \c != \c DBL_MAX indicates that a transformation with cost
 *  \a value ends there.
+*   The link \a *prevNode allows to move an opposite direction to \a *nextNode 
+*  ( back to the previous character in the string ); Used for backwards 
+*  tracing: moving towards the root of the trie;
 */
 typedef struct ARTNode{
 	wchar_t label;
 	double value;
 	struct ARTNode *rightNode;
 	struct ARTNode *nextNode;
+	struct ARTNode *prevNode;
 } ARTNode;
 
 

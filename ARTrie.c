@@ -42,7 +42,8 @@ ARTNode *newARTNode(wchar_t a){
 	artN->label = a;
 	artN->value = DBL_MAX;
 	artN->rightNode = NULL;
-	artN->nextNode = NULL;
+	artN->nextNode  = NULL;
+	artN->prevNode  = NULL;
 	return artN;
 }
 
@@ -57,21 +58,25 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
 		string = string + 1;
 		strLen--;
 		if(strLen == 0){
-            tmp->value = value;
-            return 0;
+			tmp->value = value;
+			return 0;
 		}
 		while(strLen > 1){
 			tmp->nextNode = (ARTNode *)newARTNode(*string);
+			tmp->nextNode->prevNode = tmp;
 			tmp = tmp->nextNode;
 			string = string +1;
 			strLen--;
 		}
 		tmp->nextNode = (ARTNode *)newARTNode(*string);
 		tmp->nextNode->value = value;
+		tmp->nextNode->prevNode = tmp;
 		return 0;
 	}
 
-	tmp = art->firstNode;
+  tmp = art->firstNode;
+  ARTNode *prev;
+  prev = NULL;
   while(strLen > 0){
        /* We are trying to follow an existing path in the trie ... */
        /* ... reached end of the path and end of our string */
@@ -85,6 +90,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
        }
        /* ... path continues */
        else if(tmp->label == *string && tmp->nextNode != NULL){
+           prev = tmp;
            tmp = tmp->nextNode;
            string = string + 1;
            strLen--;
@@ -95,11 +101,13 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
            strLen--;
            while(strLen > 1){
               tmp->nextNode = (ARTNode *)newARTNode(*string);
+              tmp->nextNode->prevNode = tmp;
               tmp = tmp->nextNode;
               string = string +1;
               strLen--;
            }
            tmp = tmp->nextNode = (ARTNode *)newARTNode(*string);
+           tmp->nextNode->prevNode = tmp;
            tmp->value = value;
            return 0;
      }
@@ -112,6 +120,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
   /* ... existing path not found, so it must be created */
   tmp->rightNode = newARTNode(*string);
   tmp = tmp->rightNode;
+  tmp->prevNode = prev;
   if(strLen == 1)
       tmp->value = value;
   else{
@@ -119,12 +128,14 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
       strLen--;
       while(strLen > 1){
         tmp->nextNode = (ARTNode *)newARTNode(*string);
+        tmp->nextNode->prevNode = tmp;
         tmp = tmp->nextNode;
         string = string +1;
         strLen--;
       }
       tmp->nextNode = (ARTNode *)newARTNode(*string);
       tmp->nextNode->value = value;
+      tmp->nextNode->prevNode = tmp;
   }
   return 0;
 }

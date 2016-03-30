@@ -40,9 +40,9 @@ extern int debug;
 *  points to next element in \a List .
 */
 typedef struct ListItem{
-	  double value;
-    struct Index *index;
-	  struct ListItem *nextItem;
+      double value;
+      struct Index *index;
+      struct ListItem *nextItem;
 } ListItem;
 
 /**
