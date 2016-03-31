@@ -104,6 +104,10 @@ typedef struct Transformations{
     struct Transformation *firstTransformation;
 } Transformations;
 
+// -----------------------------------------------------------------------------
+//    Creating transformations
+// -----------------------------------------------------------------------------
+
 /**
 *   Creates and returns a new transformation, which corresponds to moving in the 
 *  (generalized) edit distance table from position \a x1, \a y1 to the position 
@@ -122,18 +126,55 @@ Transformation *createTransformation(int x1, int y1, int x2, int y2, wchar_t *tr
 */
 Transformations *createTransformations();
 
+// -----------------------------------------------------------------------------
+//    Adding a new transformation to the list of transformations                
+// -----------------------------------------------------------------------------
+
+/**
+*   Creates a new \a *firstTransformation to the transformations list \a *transF
+*  if \a *transForm \c == \c NULL , or, if the first transformation already exists
+*  (and \a *transForm points to it), creates a new rightmost branch to the existing
+*  \a *firstTransformation. 
+*   Created transformation corresponds to moving in the (generalized) edit distance 
+*  table from the position \a i1, \a j1 (the "optimal distance" corner of the edit 
+*  distance table) to the position \a i2, \a j2, and changing the string from 
+*  \a *left to \a *right (both may be the same if no change occurs). 
+*  \a weight is the cost/weight of the transformation, and \a ad indicates its type 
+*  ( \a isAdditional==0 indicates a regular edit distance operation, and 
+*    \a isAdditional==1 indicates a generalized edit distance operation );
+*/
+double insertFirstTransformationToList(int i1, int j1, int i2, int j2, wchar_t *left, wchar_t *right, double weight, int ad, Transformation *transForm, Transformations *transF);
+
+/**
+*   Inserts a new transformation at the position of \a *nextTransformation of
+*  given \a *transForm , or, if \a transForm->nextTransformation already exists,
+*  adds it a new rightmost branch.
+*   Created transformation corresponds to moving in the (generalized) edit distance 
+*  table from the position \a i1, \a j1 to the position \a i2, \a j2, and changing 
+*  the string from \a *left to \a *right (both may be the same if no change occurs). 
+*  \a weight is the cost/weight of the transformation, and \a ad indicates its type 
+*  ( \a ad==0 indicates a regular edit distance operation, and 
+*    \a ad==1 indicates a generalized edit distance operation );
+*/
+double insertTransformationToList(int i1, int j1, int i2, int j2, wchar_t *left, wchar_t *right, double weight, int ad, Transformation *transForm);
+
+// -----------------------------------------------------------------------------
+//    Releasing memory under the transformations
+// -----------------------------------------------------------------------------
+
 /**
 *    Releases memory under \a *transf.
 */
 int removeTransformation(Transformation *transf);
 /**
-*    Releases memory under all transformations from \a *transf.
+*    Releases memory under all transformations from \a *transF ,
+*    including the \a *transF object itself.
 */
 int removeTransformations(Transformations *transF);
 
 /**
-*    Traverses all transformations in the \a *transf and finds a transformation which 
-*   has \a inRemovalList==0. If \a *transf has no elements or no element that satisfies 
+*    Traverses all transformations in the \a *transF and finds a transformation which 
+*   has \a inRemovalList==0. If \a *transF has no elements or no element that satisfies 
 *   the criterion, returns NULL.
 */
 Transformation *findItemNotInRemoval(Transformations *transF);

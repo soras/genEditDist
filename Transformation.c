@@ -23,6 +23,12 @@
 
 #include "Transformation.h"
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//    Creating transformations
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
 // Creates and returns a new transformation
 Transformation *createTransformation(int x1, int y1, int x2, int y2, wchar_t *trL, wchar_t *trR, double w, int ad){
     Transformation *newTransform;
@@ -75,10 +81,75 @@ Transformations *createTransformations(){
     link = (Transformations*)malloc(sizeof(Transformations));
     if(link == NULL)
         abort();
- 	link->firstTransformation = NULL;
-	return link;
+    link->firstTransformation = NULL;
+    return link;
 }
 
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//    Adding a new transformation to the list/tree of transformations           
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+// Create a new first/root transformation, or add a branch to the existing first/root transformation
+double insertFirstTransformationToList(int i1, int j1, int i2, int j2, wchar_t *left, wchar_t *right, double weight, int ad, Transformation *transForm, Transformations *transF){
+    // If no transformations have been added yet, add the new transformation as the root/first 
+    // transformation of transF
+    if(transForm == NULL){
+        if (transF->firstTransformation != NULL){
+            abort();
+        }
+        transF->firstTransformation = createTransformation(i1, j1, i2, j2, left, right, weight, ad);
+        return 0;
+    }
+    // Otherwise, if *transForm points to the root/first transformation (as it has no preceding 
+    // transformation, and also no left transformation), augment the root transformation with 
+    // a new rightmost alternative branch
+    if(transForm->prevTransformation == NULL && transForm->leftTransformation == NULL){
+        // along all the same level transformations (transformations starting from the same location 
+        // in table), find the transformation at the rightmost position:
+        while( transForm->rightTransformation != NULL){
+            transForm = transForm->rightTransformation;
+        }
+        // create the new transformation next to the rightmost one
+        transForm->rightTransformation  = createTransformation(i1, j1, i2, j2, left, right, weight, ad);
+        // and link the new transformation back to the previous transformation
+        transForm->rightTransformation->leftTransformation = transForm;
+        return 0;
+    }
+    return 0;
+}
+
+// Inserts a new transformation next to the given transformation *transForm
+double insertTransformationToList(int i1, int j1, int i2, int j2, wchar_t *left, wchar_t *right, double weight, int ad, Transformation *transForm){
+    // If there is no transformation next to the given transformation, create a new transformation
+    // and insert as the next one ...
+    if(transForm->nextTransformation == NULL){
+        transForm->nextTransformation = createTransformation(i1, j1, i2, j2, left, right, weight, ad);
+        transForm->nextTransformation->prevTransformation = transForm;
+        return 0;
+    }
+    // Otherwise, if the next transformation already exists, augment it with a new parallel branch:
+    Transformation *prev;
+    prev = transForm;
+    transForm = transForm->nextTransformation;
+    while(transForm->rightTransformation != NULL){ 
+        // find the rightmost position among the same level transformations
+        transForm = transForm->rightTransformation;
+    }
+    // add a new transformation to the rightmost position
+    transForm->rightTransformation = createTransformation(i1, j1, i2, j2, left, right, weight, ad);
+    // add the backwards link
+    transForm->rightTransformation->leftTransformation = transForm;
+    transForm->rightTransformation->prevTransformation = prev;
+    return 0;
+}
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//    Releasing memory under the transformations
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 // Releases memory under the current transformation
 int removeTransformation(Transformation *transf){
@@ -89,6 +160,31 @@ int removeTransformation(Transformation *transf){
         free(transf->trRight);
     }
     free(transf);
+    return 0;
+}
+
+// Releases memory under all items of the Transformations
+int removeTransformations(Transformations *transF){
+    Transformation *item;
+    Transformation *nextItem;
+    if (transF == NULL){
+        return 0;
+    } else if (transF->firstTransformation != NULL) {
+        if (transF->firstTransformation->inRemovalList == 0){
+            // Construct removal list (if it is not constructed yet)
+            constructRemovalList( transF );
+        }
+        if (transF->firstTransformation->inRemovalList == 0)
+            abort();
+        // Move through the removal list and remove the items
+        item = transF->firstTransformation;
+        while (item != NULL){
+            nextItem = item->nextRemovalTransformation;
+            removeTransformation(item);
+            item = nextItem;
+        }
+    }
+    free(transF);
     return 0;
 }
 
@@ -144,30 +240,6 @@ int constructRemovalList(Transformations *transF){
             nextUnlistedItem = findItemNotInRemoval(transF);
             unlistedItem->nextRemovalTransformation = nextUnlistedItem;
             unlistedItem = nextUnlistedItem;
-        }
-    }
-    return 0;
-}
-
-// Releases memory under all items of the Transformations
-int removeTransformations(Transformations *transF){
-    Transformation *item;
-    Transformation *nextItem;
-    if (transF == NULL || transF->firstTransformation == NULL)
-        return 0;
-    else {
-        if (transF->firstTransformation->inRemovalList == 0){
-            // Construct removal list (if it is not constructed yet)
-            constructRemovalList( transF );
-        }
-        if (transF->firstTransformation->inRemovalList == 0)
-            abort();
-        // Move through the removal list and remove the items
-        item = transF->firstTransformation;
-        while (item != NULL){
-            nextItem = item->nextRemovalTransformation;
-            removeTransformation(item);
-            item = nextItem;
         }
     }
     return 0;
