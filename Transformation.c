@@ -254,15 +254,18 @@ int debugRemovalListLen(Transformations *transF){
         return items;
     else {
         if (transF->firstTransformation->inRemovalList != 1){
-            return -1;
-        } else {
-            item = transF->firstTransformation;
-            while (item != NULL){
-                //printf(" %ls:%ls %i:%i", item->trLeft,item->trRight,item->startCellRow,item->startCellCol);
-                //printf("\n");
-                items = items + 1;
-                item = item->nextRemovalTransformation;
+            // Construct removal list (if it is not constructed yet)
+            constructRemovalList( transF );
+            if (transF->firstTransformation->inRemovalList != 1){
+               return -1;
             }
+        } 
+        item = transF->firstTransformation;
+        while (item != NULL){
+            //printf(" %ls:%ls %i:%i", item->trLeft,item->trRight,item->startCellRow,item->startCellCol);
+            //printf("\n");
+            items = items + 1;
+            item = item->nextRemovalTransformation;
         }
     }
     return items;

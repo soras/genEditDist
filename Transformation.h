@@ -174,7 +174,7 @@ int removeTransformations(Transformations *transF);
 
 /**
 *    Traverses all transformations in the \a *transF and finds a transformation which 
-*   has \a inRemovalList==0. If \a *transF has no elements or no element that satisfies 
+*   has \a inRemovalList==0. If \a *transF has no elements or has no element satisfying 
 *   the criterion, returns NULL.
 */
 Transformation *findItemNotInRemoval(Transformations *transF);
