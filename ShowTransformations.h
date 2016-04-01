@@ -92,6 +92,11 @@ double searchPathFromRepTrie(int cols, double table[][cols], double value, Trans
 */
 double findReplacementPath(int cols, double table[][cols], double value, Transformation *transForm, wchar_t *string2, wchar_t *left, int leftLen, EndNode *n, int i_start, int i, int j, int first, Transformations *transF);
 
+// -----------------------------------------------------------------------------
+//    Backtracing the (generalized) edit distance table for transformations
+//    made on the best paths
+// -----------------------------------------------------------------------------
+
 /**
 *      Given two strings \a a and \a b , and the prefilled edit distance 
 *    \a table , backtraces the (generalized) edit distance operations and
@@ -110,5 +115,31 @@ double findReplacementPath(int cols, double table[][cols], double value, Transfo
 *    \param repTrie trie with generalized edit distance replace operations
 */
 int findBestPaths(int cols, double table[][cols], wchar_t *a, wchar_t *b, int aLen, int bLen, Transformations *transF, ARTrie *remTrie, ARTrie *addTrie, Trie *repTrie);
+
+// -----------------------------------------------------------------------------
+//    Printing transformations / alignments
+// -----------------------------------------------------------------------------
+
+/**
+*      Given two strings \a a and \a b , and the series of transformations 
+*    between these strings \a *transF , outputs all the transformations from
+*    one string to another, aligned by character positions.
+*
+*    \param a search string
+*    \param b text
+*    \param transF object storing the series of transformations from a to b
+*    \param caseInsensitiveMode whether the program was executed in the case insensitive mode
+*    \param printAlignments whether to print transformations aligned by character positions
+*    \param printTransWeights whether to print weights of corresponding transformations
+*    \param printPretty whether alignments should be outputted in a pretty-print mode
+*/
+int printTransformations(wchar_t *a, wchar_t *b, Transformations *transF, int caseInsensitiveMode, int printAlignments, int printTransWeights, int printPretty);
+
+/**
+*      Prints \a *thisStr in a pretty-print manner, padding it with spaces if it is 
+*    shorter than \a *otherStr .
+*/
+int prettyPrint(wchar_t *thisStr, wchar_t *otherStr);
+
 
 #endif

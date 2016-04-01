@@ -241,8 +241,8 @@ double findReplacementPath(int cols, double table[][cols], double value, Transfo
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
-//    Backtracing the (generalized) edit distance table for transformations
-//    made on the best paths
+//    Backtracing the (generalized) edit distance table for transformations     
+//    made on the best paths                                                    
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------
 
@@ -431,3 +431,218 @@ int findBestPaths(int cols, double table[][cols],
     }
     return 0;
 }
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+//    Printing alignments and transformations                                   
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+
+// Outputs all transformations from string a to string b
+int printTransformations(wchar_t *a, wchar_t *b, Transformations *transF, 
+                         int caseInsensitiveMode, int printAlignments, int printTransWeights, int printPretty){
+    Transformation *current;
+    Transformation *tmp;
+    int i;
+    // Traverse the tree in a depth first manner, starting from the root (first) transformation
+    current = transF->firstTransformation;
+    while(current != NULL){
+        if(current->nextTransformation != NULL)
+            // If possible, move towards the beginning of the strings 
+            current = current->nextTransformation;
+        else {
+            // If we could not move further, we have reached to the 
+            // beginning of the strings, and thus we can now reconstruct 
+            // the serie of transformations
+            // ------------
+            //  A) While moving back towards the root, print   
+            //     left sides of transformations (a.k.a upper 
+            //     side of the alignment)
+            // ------------
+            tmp = current;
+            if (printAlignments > 0){
+                while(tmp != NULL){
+                    if (caseInsensitiveMode){ 
+                        //  If we are in caseInsensitiveMode, we have to copy the strings from 
+                        // the original input string, because the trie contains case-converted strings
+                        if(tmp->trLeft != NULL){
+                            wchar_t *tmpStr;
+                            int tmpStrLen;
+                            tmpStrLen = (tmp->startCellRow - tmp->endCellRow);
+                            tmpStr = (wchar_t*)malloc(sizeof(wchar_t)*(tmpStrLen+1));
+                            tmpStr[tmpStrLen] = L'\0';
+                            for(i = 0; i < tmpStrLen; i++){
+                                tmpStr[i] = a[tmp->endCellRow + i];
+                            }
+                            if (printPretty > 0){
+                               prettyPrint(tmpStr, tmp->trRight);
+                            } else {
+                               printf("%ls:", tmpStr);
+                            }
+                            free(tmpStr);
+                        }else{
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trLeft, tmp->trRight);
+                            } else {
+                               printf(":");
+                            }
+                        }
+                    }else{
+                        // print left sides of transformations
+                        if(tmp->trLeft != NULL){
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trLeft, tmp->trRight);
+                            } else {
+                               printf("%ls:", tmp->trLeft);
+                            }
+                        } else {
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trLeft, tmp->trRight);
+                            } else {
+                               printf(":");
+                            }
+                        }
+                    }
+                    tmp = tmp->prevTransformation;
+                }
+                printf("\n");
+            }
+            
+            // ------------
+            //  B) While moving back towards the root, print   
+            //     weights of transformations 
+            // ------------
+            tmp = current;
+            if (printTransWeights > 0){
+                while(tmp != NULL){
+                    // print transformation weight
+                    printf("%f:", tmp->weight);
+                    tmp = tmp->prevTransformation;
+                }
+                printf("\n");
+            }
+            
+            // ------------
+            //  C) While moving back towards the root, print   
+            //     right sides of transformations (a.k.a lower 
+            //     side of the alignment)
+            // ------------
+            tmp = current;
+            if (printAlignments > 0){
+                while(tmp != NULL){
+                    if(caseInsensitiveMode){ 
+                        //  If we are in caseInsensitiveMode, we have to copy the strings from 
+                        // the original input string, because the trie contains case-converted strings
+                        if(tmp->trRight != NULL){
+                            wchar_t *tmpStr;
+                            int tmpStrLen;
+                            tmpStrLen = (tmp->startCellCol - tmp->endCellCol);
+                            tmpStr = (wchar_t*)malloc(sizeof(wchar_t)*(tmpStrLen+1));
+                            tmpStr[tmpStrLen] = L'\0';
+                            for(i = 0; i < tmpStrLen; i++){
+                                tmpStr[i] = b[tmp->endCellCol + i];
+                            }
+                            if (printPretty > 0){
+                               prettyPrint(tmpStr, tmp->trLeft);
+                            } else {
+                               printf("%ls:", tmpStr);
+                            }
+                            free(tmpStr);
+                        } else {
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trRight, tmp->trLeft);
+                            } else {
+                               printf(":");
+                            }
+                        }
+                   }
+                   else{
+                        // print right sides of transformations
+                        if(tmp->trRight != NULL){
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trRight, tmp->trLeft);
+                            } else {
+                               printf("%ls:", tmp->trRight);
+                            }
+                        }else{
+                            if (printPretty > 0){
+                               prettyPrint(tmp->trRight, tmp->trLeft);
+                            } else {
+                               printf(":");
+                            }
+                        }
+                   }
+                    tmp = tmp->prevTransformation;
+                }
+                printf("\n");
+            }
+            printf(";\n");
+            
+            //
+            // After we have outputted the serie of transformations,
+            // we have to check for possible alternative series
+            //
+            if(current->rightTransformation != NULL){
+                // Move to the next alternative at the same level
+                current = current->rightTransformation;
+            } else {
+                // If there are no same level alternatives, decrease the depth and
+                // check for alternative right-branching on the road
+                current = current->prevTransformation;
+                while(current != NULL){
+                    // Check for alternative right-branching
+                    if(current->rightTransformation != NULL){
+                        current = current->rightTransformation;
+                        break;
+                    }
+                    else
+                        // Move upwards ( towards the root )
+                        current = current->prevTransformation;
+                }
+                // If we have reached to the root, there is nothing left to print
+                if(current == NULL)
+                    return 0;
+            }
+        }
+    }
+    return 0;
+}
+
+// Prints *thisStr in a pretty-print manner, padding it with spaces if it is shorter than *otherStr
+int prettyPrint(wchar_t *thisStr, wchar_t *otherStr){
+    // Find maximum length of two sides of the transformation
+    int thisLen  = 0;
+    int otherLen = 0;
+    int maxLen   = 0;
+    if (thisStr != NULL){
+        while (thisStr[thisLen] != L'\0'){
+            thisLen = thisLen + 1;
+        }
+        maxLen = thisLen;
+    }
+    if (otherStr != NULL){
+        while (otherStr[otherLen] != L'\0'){
+            otherLen = otherLen + 1;
+        }
+        if (otherLen > maxLen){
+            maxLen = otherLen;
+        }
+    }
+    // Print this side while leaving the space according to the maximal length
+    // Construct the pattern
+    char *strPattern = (char*)malloc(sizeof(char)*(20));
+    int i;
+    for(i = 0; i < 20; i++){
+       strPattern[i] = L'\0';
+    }
+    sprintf(strPattern, "%s%i%s:", "%", maxLen, "ls");
+    // Print according to the pattern
+    if (thisLen > 0){
+        printf( strPattern, thisStr );
+    } else {
+        printf( strPattern, "" );
+    }
+    free(strPattern);
+    return 0;
+}
+
