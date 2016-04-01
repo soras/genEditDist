@@ -116,7 +116,7 @@ int addToTrieDepth(TrieNode *node, wchar_t *string1, int strLen1, wchar_t *strin
 }
 
 // Adds transformation (string1 => string2 : value) to the trie t
-int addToTrie(wchar_t *string1, int strLen1, wchar_t *string2, double value){
+int addToTrie(Trie *t, wchar_t *string1, int strLen1, wchar_t *string2, double value){
     TrieNode *tmp;
     /* if the trie is empty ... */
     if(t->firstNode == NULL){

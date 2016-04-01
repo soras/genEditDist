@@ -33,6 +33,11 @@
 #include <float.h>
 #include <locale.h>
 
+// Default values for add, replace and remove operations
+extern double rep;
+extern double rem;
+extern double add;
+
 // -----------------------------------------------------------------------------
 //    Util(s)
 // -----------------------------------------------------------------------------

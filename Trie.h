@@ -30,9 +30,6 @@
 #include <locale.h>
 #include "List.h"
 
-
-extern struct Trie *t;
-
 /**
 *   Trie structure for storing generalized edit distance 'replace' operations.
 *   'replace' operations are string transformations in form \c a => \c b (\c d), 
@@ -126,7 +123,7 @@ int addToTrieDepth(TrieNode *node, wchar_t *string1, int strLen1, wchar_t *strin
 *    Adds new 'replace' transformation (\a string1 \c => \a string2 with cost \a value)
 *    to the trie \a *t. 
 */
-int addToTrie(wchar_t *string1, int strLen1, wchar_t *string2, double value);
+int addToTrie(Trie *t, wchar_t *string1, int strLen1, wchar_t *string2, double value);
 
 /**
 *     Releases memory under \a *endNode and all following endnodes in list.

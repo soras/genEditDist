@@ -201,7 +201,7 @@ int trieFromFile(char *data){
               wstr1 = makeStringToIgnoreCase(wstr1, w1);
               wstr2 = makeStringToIgnoreCase(wstr2, w2);
           }
-          addToTrie(wstr1, w1, wstr2,v);
+          addToTrie(t, wstr1, w1, wstr2, v);
           free(string2);
           free(wstr1);
 			}

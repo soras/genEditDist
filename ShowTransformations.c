@@ -380,16 +380,6 @@ int findBestPaths(int cols, double table[][cols],
             free(r);
         }
 
-        // if no further transformations were possible, end the process
-        if(currentTransf == NULL)
-            return 0;
-
-        // proovime liikuda järgmise teisenduse juurde
-        // antud lahtrist ei saanud teha ühtegi lisateisendusoperatsiooni ...
-        // saaks kehtida ainult siis, kui tegemist on tabeli väljaga 0, 0
-        // sellisel juhul liigume allapoole
-        // kuna sama algusega teisendusi ka ei saanud olla
-        
         //  try to move (backwards) to the next position in the strings;
         //     if backwards moving is not possible ( none of the previously checked edit
         //     operations produced nextTransformation for the currentTransf ), we have 
