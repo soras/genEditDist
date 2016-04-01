@@ -48,7 +48,7 @@ ARTNode *newARTNode(wchar_t a){
 }
 
 /*  Adds an add/remove transformation with given weight into the trie */
-int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
+int addToARTrie(ARTrie *art, wchar_t *string, int strLen, double value){
 	ARTNode *tmp;
 
 	/* If trie is still empty ... */
@@ -73,7 +73,6 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
 		tmp->nextNode->prevNode = tmp;
 		return 0;
 	}
-
   tmp = art->firstNode;
   ARTNode *prev;
   prev = NULL;
@@ -97,7 +96,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
        }
        /* ... reached end of the path, but our string does not end */
        else if(tmp->label == *string && tmp->nextNode == NULL){
-           string = string +1;
+           string = string + 1;
            strLen--;
            while(strLen > 1){
               tmp->nextNode = (ARTNode *)newARTNode(*string);
@@ -106,7 +105,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
               string = string +1;
               strLen--;
            }
-           tmp = tmp->nextNode = (ARTNode *)newARTNode(*string);
+           tmp->nextNode = (ARTNode *)newARTNode(*string);
            tmp->nextNode->prevNode = tmp;
            tmp->value = value;
            return 0;
@@ -130,7 +129,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen , double value){
         tmp->nextNode = (ARTNode *)newARTNode(*string);
         tmp->nextNode->prevNode = tmp;
         tmp = tmp->nextNode;
-        string = string +1;
+        string = string + 1;
         strLen--;
       }
       tmp->nextNode = (ARTNode *)newARTNode(*string);
