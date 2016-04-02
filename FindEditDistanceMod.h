@@ -27,6 +27,8 @@
 #include "Trie.h"
 #include "ARTrie.h"
 #include "FileToTrie.h"
+#include "Transformation.h"
+#include "ShowTransformations.h"
 
 #define min(x,y) (x > y ? y : x)
 
@@ -44,10 +46,14 @@
 extern double rep;
 extern double rem;
 extern double add;
-// Tries containing generalized edit distance transformations
+// Tries containing generalized edit distance transformations for search
 extern Trie *t;
 extern ARTrie *addT;
 extern ARTrie *remT;
+// Tries containing generalized edit distance transformations for backtracing
+extern Trie *traceT;
+extern ARTrie *traceAddT;
+extern ARTrie *traceRemT;
 
 extern double lastBest;
 
@@ -128,12 +134,16 @@ int editDistance(wchar_t* a, wchar_t* b,int aLen, int bLen);
 *   Calculates generalized edit distance between full strings \a a 
 *   and \a b without applying any penalties.
 *
+*   If \a *transF \c != \c NULL , transformations are backtraced and
+*   stored into \a *transF .
+*
 *  \param a search string
 *  \param b text
 *  \param aLen length of a
 *  \param bLen length of b
+*  \param transF object for storing tracebacks of the transformations
 */
-double genEditDistance(wchar_t *a, wchar_t *b, int aLen, int bLen);
+double genEditDistance(wchar_t *a, wchar_t *b, int aLen, int bLen, Transformations *transF);
 
 /**
 *   (A shortcut method)

@@ -9,7 +9,7 @@ CFLAGS=-Wall
 ##########################################################################
 PROG = genEditDist
 MPROG = GenEditDist.c
-OBJS = Trie.o ARTrie.o FileToTrie.o List.o FindEditDistanceMod.o
+OBJS = Trie.o ARTrie.o FileToTrie.o List.o Transformation.o ShowTransformations.o FindEditDistanceMod.o 
 ##########################################################################
 
 all: $(PROG)

@@ -174,7 +174,7 @@ int editDistance(wchar_t* a, wchar_t* b, int aLen, int bLen){
 }
 
 // Finds generalized edit distance between strings a and b, without applying any penalties
-double genEditDistance(wchar_t *a, wchar_t *b, int aLen, int bLen){
+double genEditDistance(wchar_t *a, wchar_t *b, int aLen, int bLen, Transformations *transF){
   int i, j;
   int rows = aLen +1;  // search string
   int cols = bLen +1;  // text
@@ -240,7 +240,10 @@ double genEditDistance(wchar_t *a, wchar_t *b, int aLen, int bLen){
    }
    puts("\n");
   */
-
+  if (transF != NULL){
+      // if required, backtrace the transformations
+      findBestPaths(cols, table, a, b, aLen, bLen, transF, traceRemT, traceAddT, traceT);
+  }
   return table[rows-1][cols-1];
 }
 
@@ -302,7 +305,7 @@ double genEditDistance_pens(wchar_t *a, wchar_t *b, int aLen, int bLen, double* 
                         min(table[i][j-1] + add + getPenaltOfChangingPos(i),  // insert after search string pos i. 
                         table[i-1][j] + rem + getPenaltOfChangingPos(i-1) )); // delete from search string pos i. 
             if(value < table[i][j]) table[i][j] = value;
-	      }
+        }
 
         //
         // NB! The 'add penalty' above { table[i][j-1] + add + getPenaltOfChangingPos(i) } is useful

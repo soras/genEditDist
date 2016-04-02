@@ -39,16 +39,22 @@
 #include <string.h>
 #include <locale.h>
 
+extern int debug;
 
 extern double add;
 extern double rep;
 extern double rem;
-extern Trie *t;
+
 extern IgnoreCaseListElement *ignoreCase;
-extern int debug;
 extern int caseInsensitiveMode;
+
+extern Trie *t;
 extern ARTrie *addT;
 extern ARTrie *remT;
+
+extern Trie *traceT;
+extern ARTrie *traceAddT;
+extern ARTrie *traceRemT;
 
 /**
 *   Reads file \a *filename into memory, using \c mmap() function. Returns
@@ -103,8 +109,6 @@ wchar_t makeToIgnoreCase(wchar_t s);
 */
 wchar_t *makeStringToIgnoreCase(wchar_t *string, int len);
 
-
-
 /**
 *   Transforms given wchar string \a *str into multibyte char string.
 */
@@ -114,5 +118,10 @@ char *wcharToLocale(wchar_t *str);
 *   Transforms given multibyte char string \a *str into wchar string.
 */
 wchar_t *localeToWchar(char *str);
+
+/**
+*   Returns a new string that is a reversed version of given string \a *str .
+*/
+wchar_t *reverseWchar(wchar_t *str, int strLen);
 
 #endif

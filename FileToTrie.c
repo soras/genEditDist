@@ -95,17 +95,17 @@ int trieFromFile(char *data){
 	j = 0;
 
 	while(i < datalen){
-    /*
-    *   Setting weights of default edit operations:
-    *   the line must begin with character '>', followed
-    *   by "add" for addition, "rep" for replacement and
-    *   "del" for deletion operation; after the operation
-    *    marker, ':' is placed and finally comes the new
-    *    weight as double.
-    */
+		/*
+		*   Setting weights of default edit operations:
+		*   the line must begin with character '>', followed
+		*   by "add" for addition, "rep" for replacement and
+		*   "del" for deletion operation; after the operation
+		*    marker, ':' is placed and finally comes the new
+		*    weight as double.
+		*/
 		if(data[i] == '>'){
 			i = i +1;
-      /* Change weight of default add operation */
+			/* Change weight of default add operation */
 			if(strncmp((char *)(data+i), "add", 3) == 0){
 				i +=4;
 				j = i;
@@ -128,7 +128,7 @@ int trieFromFile(char *data){
 				else j = j+1;
 				i = j;
 			}
-      /* Change weight of default remove operation */
+			/* Change weight of default remove operation */
 			else if(strncmp((char *)(data+i), "rem", 3) == 0){
 				i +=4;
 				j = i;
@@ -140,10 +140,10 @@ int trieFromFile(char *data){
 				i = j;
 			}
 		}
-    /*
-    *  Setting weights of generalized edit distance transformations; 
-    */
-		else{
+		/*
+		*  Setting weights of generalized edit distance transformations; 
+		*/
+		else {
 			j = i;
 			/* Locate the left side string of transformation */
 			while(data[j] != ':') j++;
@@ -155,7 +155,6 @@ int trieFromFile(char *data){
 			}
 			string1[j-i] ='\0';
 			strncpy(string1, (data +i), (j-i));
-
 
 			/* Locate the right side string of transformation */
 			j++; i = j;
@@ -170,46 +169,70 @@ int trieFromFile(char *data){
 			strncpy(string2, (data +i), (j-i));
 			j++; i = j;
 			while(data[j] != '\n' && data[j] != '\r' && j < datalen) j++;
-
-      /* Find the weight of transformation  */
-			v =  findValue(data, i, j);
-
-       /* According to the type of transformation, add into suitable trie */
+            
+			/* Find the weight of transformation  */
+			v = findValue(data, i, j);
+            
+			/* According to the type of transformation, add into suitable trie */
 			if(strlen(string1) == 0){
-          /* Add to add-operations trie */
-          w2 = mbstowcs(NULL, string2, 0);
-          wstr2 = (wchar_t *)localeToWchar(string2);
-          if(caseInsensitiveMode)
-              wstr2 = makeStringToIgnoreCase(wstr2, w2);
-          addToARTrie(addT, wstr2, w2, v);
-          free(wstr2);
-          free(string2);
-			}else if(strlen(string2) == 0){
-          /* Add to remove-operations trie */
-          w1 = mbstowcs(NULL, string1, 0);
-          wstr1 = (wchar_t *)localeToWchar(string1);
-          if(caseInsensitiveMode)
-              wstr1 = makeStringToIgnoreCase(wstr1, w1);
-          addToARTrie(remT, wstr1, w1, v);
+				/* Add to add-operations trie */
+				w2 = mbstowcs(NULL, string2, 0);
+				wstr2 = (wchar_t *)localeToWchar(string2);
+				if(caseInsensitiveMode)
+					wstr2 = makeStringToIgnoreCase(wstr2, w2);
+				addToARTrie(addT, wstr2, w2, v);
+				/* If corresponding tracing-trie also exists, reverse the string and 
+				   add it to the tracing tire. */
+				if (traceAddT != NULL){
+					wchar_t *reversedWstr2;
+					reversedWstr2 = reverseWchar(wstr2, w2);
+					addToARTrie(traceAddT, reversedWstr2, w2, v);
+					free(reversedWstr2);
+				}
+				free(wstr2);
+				free(string2);
+			} else if(strlen(string2) == 0) {
+				/* Add to remove-operations trie */
+				w1 = mbstowcs(NULL, string1, 0);
+				wstr1 = (wchar_t *)localeToWchar(string1);
+				if(caseInsensitiveMode)
+					wstr1 = makeStringToIgnoreCase(wstr1, w1);
+				addToARTrie(remT, wstr1, w1, v);
+				/* If corresponding tracing-trie also exists, reverse the string and 
+				   add it to the tracing tire. */
+				if (traceRemT != NULL){
+					wchar_t *reversedWstr1;
+					reversedWstr1 = reverseWchar(wstr1, w1);
+					addToARTrie(traceRemT, reversedWstr1, w1, v);
+					free(reversedWstr1);
+				}
 			}else{
-          /* Add to replace-operations trie */
-          wstr2 = (wchar_t *)localeToWchar(string2);
-          wstr1 = (wchar_t *)localeToWchar(string1);
-          w1 = mbstowcs(NULL, string1, 0);
-          w2 = mbstowcs(NULL, string2, 0);
-          if(caseInsensitiveMode){
-              wstr1 = makeStringToIgnoreCase(wstr1, w1);
-              wstr2 = makeStringToIgnoreCase(wstr2, w2);
-          }
-          addToTrie(t, wstr1, w1, wstr2, v);
-          free(string2);
-          free(wstr1);
+				/* Add to replace-operations trie */
+				wstr2 = (wchar_t *)localeToWchar(string2);
+				wstr1 = (wchar_t *)localeToWchar(string1);
+				w1 = mbstowcs(NULL, string1, 0);
+				w2 = mbstowcs(NULL, string2, 0);
+				if(caseInsensitiveMode){
+					wstr1 = makeStringToIgnoreCase(wstr1, w1);
+					wstr2 = makeStringToIgnoreCase(wstr2, w2);
+				}
+				addToTrie(t, wstr1, w1, wstr2, v);
+				/* If corresponding tracing-trie also exists, reverse the string and 
+				   add it to the tracing tire. */
+				if (traceT != NULL){
+					wchar_t *reversedWstr1;
+					reversedWstr1 = reverseWchar(wstr1, w1);
+					addToTrie(traceT, reversedWstr1, w1, wstr2, v);
+					free(reversedWstr1);
+				}
+				free(string2);
+				free(wstr1);
 			}
-      if(data[j] == '\r') /* In case we are under Windows */
-          j = j + 2;
-      else 
-          j = j+1;
-      i = j;
+			if(data[j] == '\r') /* In case we are under Windows */
+				j = j + 2;
+			else 
+				j = j + 1;
+			i = j;
 		}
 	}
 	free(string1);
@@ -366,5 +389,18 @@ wchar_t *localeToWchar(char *str){
 	  ptr[s] = L'\0';
   
 	  return(ptr);
+}
+
+// Returns a new string that is a reversed version of given wchar string
+wchar_t *reverseWchar(wchar_t *str, int strLen){
+    wchar_t *s;
+    s = (wchar_t *)malloc(sizeof(wchar_t)*(strLen+1));
+    s[strLen] = L'\0';
+    int i = strLen-1;
+    while (i > -1){
+        s[i]=str[(strLen-1)-i];
+        i--;
+    }
+    return s;
 }
 

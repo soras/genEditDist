@@ -30,7 +30,7 @@
 #include <unistd.h>  /* For parsing command line args. */
 
 #include "FindEditDistanceMod.h"  /* Methods for calculating generalized edit distance. */
-
+#include "ShowTransformations.h"  /* Methods for backtracing and printing transformations. */
 
 /**
 *  Default cost for the 'replace' operation in regular edit distance.
@@ -48,6 +48,8 @@ double add = 1;
 
 /**
 *    Trie for 'replace' operations in generalized edit distance; 
+*
+*    Used for search;
 */
 Trie *t;
 /**
@@ -55,6 +57,8 @@ Trie *t;
 *    tries for 'add' and 'remove' make look-up more efficient: no need
 *    to browse through the 'replace' tree in order to find suitable 
 *    transformations.
+*
+*    Used for search;
 */
 ARTrie *addT;
 /** 
@@ -62,8 +66,34 @@ ARTrie *addT;
 *    tries for 'add' and 'remove' make look-up more efficient: no need 
 *    to browse through the 'replace' tree in order to find suitable 
 *    transformations.
+*
+*    Used for search;
 */
 ARTrie *remT;
+
+
+/**
+*    Trie for 'replace' operations in generalized edit distance;
+*
+*    Used for backtracing the transformations, so, compared to \a *t ,
+*    'left'-sides of the transformations are reversed in this trie.
+*/
+Trie *traceT = NULL;
+/**
+*    Trie for 'add' operations in generalized edit distance;
+*
+*    Used for backtracing the transformations, so, compared to \a *addT ,
+*    strings are reversed in this trie.
+*/
+ARTrie *traceAddT = NULL;
+/**
+*    Trie for 'replace' operations in generalized edit distance;
+*
+*    Used for backtracing the transformations, so, compared to \a *remT ,
+*    strings are reversed in this trie.
+*/
+ARTrie *traceRemT = NULL;
+
 
 /**
 *   First element of the ignore case list. The list contains upper-case
@@ -141,6 +171,32 @@ double *changeSearchStringWithGenEd_pen = NULL;
  *  \a changeSearchStringWithGenEd_pen to block changes. 
  */
 #define CHANGE_PENALT  3000.0 
+
+/**
+*   Indicates, whether alignments with the search string should be printed
+*   for each found match ( \a printAlignments=1 for printing the alignments ).
+*   With the current implementation, the alignments are printed only under the 
+*   following conditions:
+*      -- the mode is the maximum edit distance search (flag '-m' set);
+*      -- blocked regions are disabled (flad '-e' not set);
+*      -- only full-extent match is used (flags '-p', '-i', '-s' not set);
+*/
+int printAlignments = 0;
+
+/**
+*   Indicates, whether transformation weights should be output while printing 
+*   the alignments ( \a printAlignments=1 ). If \a printAlignTransfWeights=1 ,
+*   then transformation weights are also printed.
+*/
+int printAlignTransfWeights = 0;
+
+/**
+*   Indicates, whether pretty-printing mode should be used while printing 
+*   the alignments ( \a printAlignments=1 ). If \a printAlignmentsPretty=1 ,
+*   then pretty-printing mode is used ( strings are padded with spaces in 
+    order to better visualise the alignment ).
+*/
+int printAlignmentsPretty = 0;
 
 /** 
 *   Extracts blocked regions from given search string, fills arrays 
@@ -338,26 +394,26 @@ int findDistances(char *file, wchar_t *string, int stringLen, double editD, char
                      fullED = genEditDistance_full(string, 
                                                    ((caseInsensitiveMode)?(wstr_new):(wstr)),
                                                    stringLen, 
-                                                   wLen); 
-                              break;
+                                                   wLen);
+                     break;
                 case L_PREFIX:
                      prefED = genEditDistance_prefix(string, 
                                                      ((caseInsensitiveMode)?(wstr_new):(wstr)),
                                                      stringLen, 
                                                      wLen); 
-                              break;
+                     break;
                 case L_SUFFIX:
                      suffED = genEditDistance_suffix(string, 
                                                      ((caseInsensitiveMode)?(wstr_new):(wstr)),
                                                      stringLen, 
                                                      wLen); 
-                              break;
+                     break;
                 case L_INFIX:
                      infxED = genEditDistance_middle(string, 
                                                      ((caseInsensitiveMode)?(wstr_new):(wstr)),
                                                      stringLen, 
                                                      wLen); 
-                              break;
+                     break;
             }
         }
 
@@ -369,24 +425,47 @@ int findDistances(char *file, wchar_t *string, int stringLen, double editD, char
             puts(str);
             // print different scores, according to flagsInPositions
             pos = 0;
+            int flagsUsed = 0;
             while ((pos < FP_MAX_POSITIONS) && (flagsInPositions[pos] != L_EMPTY)){
                switch (flagsInPositions[pos++]){
                  case L_FULL:
                               printf("%f", fullED);
+                              flagsUsed++;
                               break;
                  case L_PREFIX:
                               printf("%f", prefED);
+                              flagsUsed++;
                               break;
                  case L_SUFFIX:
                               printf("%f", suffED);
+                              flagsUsed++;
                               break;
                  case L_INFIX:
                               printf("%f", infxED);
+                              flagsUsed++;
                               break;
               }
               printf(" ");
             }
             printf("\n");
+            
+            // if required, trace and print transformations
+            if(printAlignments > 0 && fullED <= editD && 
+               blockChangesInSearchString == 0 && flagsUsed == 1){
+                Transformations *transF = createTransformations();
+                genEditDistance(string, 
+                                ((caseInsensitiveMode)?(wstr_new):(wstr)),
+                                stringLen,
+                                wLen, transF);
+                printTransformations(string, ((caseInsensitiveMode)?(wstr_new):(wstr)), 
+                                     transF, caseInsensitiveMode, 
+                                     printAlignments, 
+                                     printAlignTransfWeights, 
+                                     printAlignmentsPretty);
+                //printf("  Removal list: %i ",debugRemovalListLen(transF));
+                removeTransformations(transF);
+            }
+            
         }
 
         free(wstr);
@@ -504,7 +583,7 @@ int findBest(char *file, wchar_t *string, int stringLen, int best, char flag){
     */
     long countBest = 0; 
     while(item != NULL){
-    	puts("------------------------");
+        puts("------------------------");
         printf("%f \n", item->value);
         index = item->index;
         while(index != NULL){
@@ -539,7 +618,7 @@ int findBest(char *file, wchar_t *string, int stringLen, int best, char flag){
 */
 int helpInfo(char *prog){
    puts("Usage:");
-   printf("1) %s -m maxED [-lepsfi] file_A  string  file_B  [file_C]\n", prog);
+   printf("1) %s -m maxED [-lepsfi] [-awy] file_A  string  file_B  [file_C]\n", prog);
    puts("   ");
    puts("   Computes generalized edit distances between <string> and strings in");
    puts("   <file_B>. Outputs all strings which have distance <= maxED;");
@@ -578,6 +657,12 @@ int helpInfo(char *prog){
    puts("    <ab>cdef    = the prefix 'ab' can't be modified either with regular edit");
    puts("                  distance nor with generalized edit distance.");
    puts("");
+   puts("  -a  prints alignments between the search string and each full distant match");
+   puts("      Can only be used with flag '-m',  when  flags '-e', '-i', '-s', '-p'");
+   puts("      are not set. Has the following suboptions: ");
+   puts("        -y  Uses pretty-printing;");
+   puts("        -w  Prints weights of transformations;");
+   puts("");
    exit(0);
 }
 
@@ -590,12 +675,12 @@ int helpInfo(char *prog){
 int main(int argc, char* argv[]){
 
   // file definitions
-	char *filename;
-	char *searchString;
-	char *wordsFile;
-	char *ignoreCaseFile;
-	char *data;
-	char *words;
+  char *filename;
+  char *searchString;
+  char *wordsFile;
+  char *ignoreCaseFile;
+  char *data;
+  char *words;
 
   /* set locale */
   if (!setlocale(LC_CTYPE, "")) {
@@ -605,10 +690,10 @@ int main(int argc, char* argv[]){
   }
 
   // Default costs for regular edit distance operations
-	add = rep = rem = 1.0;
-	char *err;
-	wchar_t *wSearch;
-	int wlen;
+  add = rep = rem = 1.0;
+  char *err;
+  wchar_t *wSearch;
+  int wlen;
 
   // Flags from the command line
 
@@ -624,18 +709,18 @@ int main(int argc, char* argv[]){
   // It may be overwritten by the arguments from command line
   flagsInPositions[curInFlags] = L_FULL; 
 
-	// Number of best results (costs)
+  // Number of best results (costs)
   // If the value is >= 0, number of best matches will be output
-	int best = -1;
+  int best = -1;
 
   // Maximum edit distance threshold
   // If the value is >= 0, all matches having distance >= max will be output;
-	double max = -1.0;
+  double max = -1.0;
 
   // Parse flags from the command line
   int c;
   char *argForOpt;
-  while ((c = getopt (argc, argv, "b:m:elpisf?")) != -1){
+  while ((c = getopt(argc, argv, "b:m:elpisf?awy")) != -1){
     switch (c){
       case 'f':
          if (curInFlags < FP_MAX_POSITIONS) flagsInPositions[curInFlags++] = L_FULL;
@@ -665,6 +750,15 @@ int main(int argc, char* argv[]){
          // Maximum edit distance threshold
          max = strtod(argForOpt, &err);
          break;
+      case 'a':
+         printAlignments = 1;
+         break;
+      case 'w':
+         printAlignTransfWeights = 1;
+         break;
+      case 'y':
+         printAlignmentsPretty = 1;
+         break;
       case '?':
          helpInfo(argv[0]);
          return 0;
@@ -673,15 +767,15 @@ int main(int argc, char* argv[]){
 
   // There must be at least 3 arguments left: transformations file, search string and dictionary file
   if (argc - optind < 3){
-	   printf("Wrong number of arguments: %i \n",argc-1);
-		 helpInfo(argv[0]);
+     printf("Wrong number of arguments: %i \n",argc-1);
+     helpInfo(argv[0]);
      return 1;
   }
 
   // EXACTLY ONE of the flags '-b' and '-m' must be set
   if ((best < 0 && max < 0.0) || (best >= 0 && max >= 0.0)){
- 	   printf("Exactly one of the flags '-b' and '-m' must be set; \n");
-		 helpInfo(argv[0]);
+     printf("Exactly one of the flags '-b' and '-m' must be set; \n");
+     helpInfo(argv[0]);
      return 1;
   }
 
@@ -706,6 +800,13 @@ int main(int argc, char* argv[]){
   t = createTrie();
   addT = createARTrie();
   remT = createARTrie();
+  
+  /* if printing alignments is required, create also tries for backtracing */
+  if (printAlignments > 0){
+      traceT    = createTrie();
+      traceAddT = createARTrie();
+      traceRemT = createARTrie();
+  }
 
   /* read transformations file and build trie-structures */
   data = (char *)readFile(filename);
@@ -742,7 +843,8 @@ int main(int argc, char* argv[]){
                    flagsInPositions  // for every match: output all scores of different types
                   );
   }
-
+  
+  
   /* release used memory */
 
   if (changeSearchStringWithEd_pen != NULL){
@@ -763,6 +865,7 @@ int main(int argc, char* argv[]){
      munmap(words, strlen(words));
   }
 
+  // Searching tries
   if (t != NULL){
      freeTrie(t);
   }
@@ -771,6 +874,16 @@ int main(int argc, char* argv[]){
   }
   if (addT != NULL){
      freeARTrie(remT);
+  }
+  // Backtracing tries
+  if (traceT != NULL){
+     freeTrie(traceT);
+  }
+  if (traceAddT != NULL){
+     freeARTrie(traceAddT);
+  }
+  if (traceRemT != NULL){
+     freeARTrie(traceRemT);
   }
   return 0;
 
