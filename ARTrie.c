@@ -107,7 +107,7 @@ int addToARTrie(ARTrie *art, wchar_t *string, int strLen, double value){
            }
            tmp->nextNode = (ARTNode *)newARTNode(*string);
            tmp->nextNode->prevNode = tmp;
-           tmp->value = value;
+           tmp->nextNode->value = value;
            return 0;
      }
      /* ... if labels do not match, try to switch the track (look next nodes
