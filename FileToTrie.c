@@ -257,21 +257,20 @@ int ignoreCaseListFromFile(char *data){
 	i = 0;
 	j = 0;
 
-	while(i < datalen){
+  while(i < datalen){
         j = i;
 
         /* Find left side of the transformation */
         while(data[j] != ':') j++;
 
         string1 = (char *)malloc(j-i+1);
-
         if(string1 == NULL){
            perror("Memory");
            exit(1);
         }
         string1[j-i] ='\0';
         strncpy(string1, (data +i), (j-i));
-
+        
         /* Find right side of the transformation */
         j++; i = j;
 
@@ -295,7 +294,6 @@ int ignoreCaseListFromFile(char *data){
         free(string2);
         free(wstr1);
         free(wstr2);
-
         if(data[j] == '\r') /* In case we are under Windows */
            j = j + 2;
         else j = j+1;

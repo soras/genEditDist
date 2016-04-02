@@ -84,7 +84,7 @@ ListItem *createListItem(double v, int i, int j){
 		abort();
 
 	item->value = v;
-  item->index = createIndex(i, j);
+	item->index = createIndex(i, j);
 	item->nextItem = NULL;
 	return item;
 }
@@ -96,8 +96,9 @@ IgnoreCaseListElement *createIgnoreCaseElement(wchar_t *l, wchar_t *r){
     e = (IgnoreCaseListElement *)malloc(sizeof(IgnoreCaseListElement));
     if(e == NULL)
        abort();
-    e->left = (wchar_t *)copy_wchar_t(l, wchar_len(l));
+    e->left  = (wchar_t *)copy_wchar_t(l, wchar_len(l));
     e->right = (wchar_t *)copy_wchar_t(r, wchar_len(r));
+    e->next  = NULL;
     return e;
 }
 
@@ -245,7 +246,6 @@ int insertIgnoreCaseElement(wchar_t *l, wchar_t *r){
         current = ignoreCase;
         while(current->next != NULL)
             current = current->next;
-
         // current->next == NULL
         if(debug)
             puts("Inserted element to ignore case list");
