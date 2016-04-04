@@ -598,6 +598,7 @@ int printTransformations(wchar_t *a, wchar_t *b, Transformations *transF,
     return 0;
 }
 
+
 // Prints *thisStr in a pretty-print manner, padding it with spaces if it is shorter than *otherStr
 int prettyPrint(wchar_t *thisStr, wchar_t *otherStr){
     // Find maximum length of two sides of the transformation
@@ -618,21 +619,30 @@ int prettyPrint(wchar_t *thisStr, wchar_t *otherStr){
             maxLen = otherLen;
         }
     }
-    // Print this side while leaving the space according to the maximal length
-    // Construct the pattern
-    char *strPattern = (char*)malloc(sizeof(char)*(20));
-    int i;
-    for(i = 0; i < 20; i++){
-       strPattern[i] = L'\0';
+    if ( thisLen == maxLen )
+        printf( "%ls:", thisStr );
+    else {
+        // This side is shorter than the other side: construct this side as a 
+        // new string having an equal length, and pad the gap in the left side 
+        // with spaces
+        wchar_t *s;
+        if ((s = (wchar_t *)malloc((maxLen+1) * sizeof(wchar_t))) == NULL){
+            puts("Error: Could not allocate memory");
+            exit(1);
+        }
+        s[maxLen] = L'\0';
+        int i;
+        for(i = 0; i < maxLen; i++){
+            if (i < maxLen-thisLen){
+                s[i] = L' ';
+            } else {
+                s[i] = thisStr[i-(maxLen-thisLen)];
+            }
+        }
+        // Print new this side
+        printf( "%ls:", s );
+        free(s);
     }
-    sprintf(strPattern, "%s%i%s:", "%", maxLen, "ls");
-    // Print according to the pattern
-    if (thisLen > 0){
-        printf( strPattern, thisStr );
-    } else {
-        printf( strPattern, "" );
-    }
-    free(strPattern);
     return 0;
 }
 

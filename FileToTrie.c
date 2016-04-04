@@ -392,7 +392,10 @@ wchar_t *localeToWchar(char *str){
 // Returns a new string that is a reversed version of given wchar string
 wchar_t *reverseWchar(wchar_t *str, int strLen){
     wchar_t *s;
-    s = (wchar_t *)malloc(sizeof(wchar_t)*(strLen+1));
+    if ((s = (wchar_t *)malloc((strLen+1) * sizeof(wchar_t))) == NULL){
+        puts("Error: Could not allocate memory");
+        exit(1);
+    }
     s[strLen] = L'\0';
     int i = strLen-1;
     while (i > -1){
