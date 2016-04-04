@@ -3,11 +3,12 @@
 ================================================
 
   GenEditDist tool allows to find approximate matches between a search 
-  string and list of strings in a dictionary. In addition to regular edit 
-  distance, a set of weighted transformations can be used in a search.
+  string and list of strings in a dictionary. In addition to the regular 
+  edit distance (the Levenshtein distance), a set of weighted transformations 
+  can be used in a search.
 
   The tool has two working modes:
-   *) Find all the matches that are within the maximum edit distance limit.
+   *) Find all the matches that are within the maximum edit distance limit;
    *) Find top N closest matches;
 
   Currently, the tool has been developed and tested only on UNIX platform 
@@ -293,6 +294,108 @@
        huk
 
 
+ 2.5. Showing transformations / alignments
+-----------------------------------------------------
+
+     If the plain full extent match mode is used for finding all  matches  within 
+    the given maximum distance, i.e. the combination of flags -m and -f  is  used,
+    and none of the flags -p, -s, -i, -e  is  set,  then  the  flag  -a  can  be
+    used to switch on the mode of showing the transformations / alignments between 
+    the search string and each found match.
+    
+       Usage examples (**):
+       
+       ./genEditDist -m 1.5 -f -a -y  testdata/transformations.txt  shop  testdata/pidgin_words.txt
+       ------------------------
+       hop
+       1.000000
+       s:h:o:p:
+        :h:o:p:
+       ;
+       ------------------------
+       sop
+       0.600000
+       sh:o:p:
+        s:o:p:
+       ;
+       ------------------------
+       sup
+       1.200000
+       sh:o:p:
+        s:u:p:
+       ;
+
+     Note  that  the  alignments  are  displayed  not   character-wise,  but 
+    transformation-wise,   considering   both   the   regular   edit  distance 
+    transformations (single character transformations)  and  generalized  edit
+    distance transformations (which can also be string to string transformations).
+     The character ':' separates different positions in the alignment.
+    
+     If the optional flag  -y  is used in the mode of showing the transformations
+    (like in the previous example), then alignments are output in a pretty-printing 
+    mode: if two aligned positions contain different length strings, the shorter
+    string is padded with spaces from the left side.
+    
+     There can be more than one best alignment between the two strings, in that 
+    case,  a semicolon in a new line separates different alignments:
+    
+       ./genEditDist -m 3.5 -f -ay  testdata/transformations.txt shopper testdata/pidgin_words.txt
+       ------------------------
+       sops
+       3.500000
+       sh:o:p:p:e:r:
+        s:o:p:s: : :
+       ;
+       sh:o:p:p:e:r:
+        s:o:p: :s: :
+       ;
+       sh:o:p:p:e:r:
+        s:o: :p:s: :
+       ;
+       ------------------------
+       sop
+       3.500000
+       sh:o:p:p:e:r:
+        s:o:p: : : :
+       ;
+       sh:o:p:p:e:r:
+        s:o: :p: : :
+       ;
+    
+    
+     The optional flag -w can be used to show the weights / costs of the transformations. 
+    The weights are displayed in-between the two aligned strings,  and  colons  are  used 
+    as separators of different weights:
+    
+       ./genEditDist -m 1.5 -f -ay -w testdata/transformations.txt shop testdata/pidgin_words.txt
+       ------------------------
+       hop
+       1.000000
+       s:h:o:p:
+       1.000000:0.000000:0.000000:0.000000:
+        :h:o:p:
+       ;
+       ------------------------
+       sop
+       0.600000
+       sh:o:p:
+       0.600000:0.000000:0.000000:
+        s:o:p:
+       ;
+       ------------------------
+       sup
+       1.200000
+       sh:o:p:
+       0.600000:0.600000:0.000000:
+        s:u:p:
+       ;
+
+
+     NB! The current implementation of showing transformations does not support
+    partial matches (flags -p, -s, -i), finding Top N matches (flag -b) and 
+    using the blocked regions within the search string (flag -e).
+
+
 
  3. Compiling the program
 ---------------------------
@@ -319,5 +422,9 @@
 
 
 
+ 5.  Reference
+-------------------------------
 
-  Last updates:  2013-10-25
+   Orasmaa, S., Käärik, R., Vilo, J., & Hennoste, T. (2010). Information Retrieval of 
+   Word Form Variants in Spoken Language Corpora Using Generalized Edit Distance. 
+   In LREC.
