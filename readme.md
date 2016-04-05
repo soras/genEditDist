@@ -49,15 +49,18 @@ Four modes of matching exist:
    Examples (**):
    
    search string: `police`
+   
    dictionary string: `polis`
-   full match distance: `0.9`
-   ( using transformation  ` ce:s:0.9 ` )
-
+   
+   full match distance: `0.9`  ( using transformation  ` ce:s:0.9 ` )
+   
    search string: `computer`
+   
    dictionary string: `komputa`
-   full match distance: `2.4`
-   ( using transformations  ` c:k:0.5  r::0.9  e:a:1.0 ` )
-            
+   
+   full match distance: `2.4`  ( using transformations  ` c:k:0.5  r::0.9  e:a:1.0 ` )
+
+
 2. Distance from some prefix of the dictionary word (flag -p):
     
    Distance between the search string and a string in the dictionary is calculated considering only a prefix of the dictionary word.
@@ -65,44 +68,54 @@ Four modes of matching exist:
    Examples (**):
             
    search string: `police`
+   
    dictionary string: `polisman`
-   prefix match distance: `0.9`
-   ( using transformation  ` ce:s:0.9 ` )
+   
+   prefix match distance: `0.9`  ( using transformation  ` ce:s:0.9 ` )
 
    search string: `book`
+   
    dictionary string: `buksop`
-   prefix match distance: `0.5`
-   ( using transformation  ` oo:u:0.5 ` )
+   
+   prefix match distance: `0.5`  ( using transformation  ` oo:u:0.5 ` )
+
 
 3. Distance from some suffix of the dictionary word (flag -s):
     
    Distance between the search string and a string in the dictionary is calculated considering only a suffix of the dictionary word.
 
    Examples (**):
+   
    search string: `block`
+   
    dictionary string: `aisblok`
-   suffix match distance: `0.5`
-   ( using transformation  ` ck:k:0.5 ` )
+   
+   suffix match distance: `0.5`  ( using transformation  ` ck:k:0.5 ` )
 
    search string: `card`
+   
    dictionary string: `postkat`
-   suffix match distance: `1.9`
-   ( using transformations  ` c:k:0.5  r::0.9  d:t:0.5 ` )
+   
+   suffix match distance: `1.9`  ( using transformations  ` c:k:0.5  r::0.9  d:t:0.5 ` )
+
 
 4. Distance from some infix of the dictionary word (flag -i):
     
    Distance between the search string and a string in the dictionary is calculated considering only an infix of the dictionary word.
       
    Examples (**):
+   
    search string: `belong`
+   
    dictionary string: `glas bilong kapten`
-   infix match distance: `0.8`
-   ( using transformation  ` e:i:0.8 ` )
+   
+   infix match distance: `0.8`  ( using transformation  ` e:i:0.8 ` )
 
    search string: `something`
+   
    dictionary string: `i gat samting gut`
-   infix match distance: `2.2`
-   ( using transformations  ` th:t:0.6  o:a:0.6  e::1.0 ` )
+   
+   infix match distance: `2.2`  ( using transformations  ` th:t:0.6  o:a:0.6  e::1.0 ` )
 
 
 These matching modes can be combined, e.g flag -fi states that both full match and infix match are calculated.
@@ -207,18 +220,19 @@ Usage examples (**):
 
 ### 2.4. Using blocked regions in the search string
 
- Blocked regions can be used to constrain the search and allow transformations only in certain parts of the search string;
+Blocked regions can be used to constrain the search and allow transformations only in certain parts of the search string;
 
- When flag -e is set, substrings surrounded with either `()` and `<>` in the search string will be blocked from changes:
+When flag -e is set, substrings surrounded with either `()` and `<>` in the search string will be blocked from changes:
 
 * `()` will block only regular edit distance changes, but allows changes through generalized edit distance transformations.
 
 * `<>` will block both regular edit distance and generalized edit distance, so the substring region cannot be changed at all.
 
 
- `((` or `<<` at the beginning of the search string block additions before the first letter of the string (otherwise, such additions are allowed). Analogously, additions after the last letter are blocked by `))` or `>>`.
 
- Currently, additions between two consecutive regions are also blocked, so, in case of search string `<a><b>c`, no addition is allowed between `a` and `b`.
+`((` or `<<` at the beginning of the search string block additions before the first letter of the string (otherwise, such additions are allowed). Analogously, additions after the last letter are blocked by `))` or `>>`.
+
+Currently, additions between two consecutive regions are also blocked, so, in case of search string `<a><b>c`, no addition is allowed between `a` and `b`.
 
 Usage examples (**):
 
