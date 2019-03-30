@@ -14,12 +14,15 @@ Currently, the tool has been developed and tested only on UNIX platform and it i
 
 ## 1. Environment and input files
 
-The tool expects that all its inputs are in UTF8 encoding. Before using the tool, the environment should be set to support UTF8 in the command line.
+The tool expects that all its inputs are in UTF-8 encoding. 
+Before using the tool, you need to have the locales-all package installed. You can install it with the command:
+ 
+    apt-get install locales-all
 
-One possible way to do it is with the bash command:
+Then you need to configure the environment to support UTF-8 on the command line. You can do this by the following commands:
 
     export LANG=et_EE.utf8
-
+    export C_ALL=et_EE.utf8
 
 An input 'dictionary' where the search is performed should be a text file, where each entry (a match candidate) is on a new line.
 
